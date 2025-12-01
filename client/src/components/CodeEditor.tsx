@@ -10,7 +10,7 @@ interface CodeEditorProps {
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ code, language, onChange, onMount }) => {
     return (
-        <div className="h-full w-full overflow-hidden rounded-lg border border-gray-700 shadow-inner">
+        <div className="h-full w-full overflow-hidden border border-gray-700 shadow-inner">
             <Editor
                 height="100%"
                 language={language}

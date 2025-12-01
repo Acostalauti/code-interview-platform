@@ -150,7 +150,7 @@ const SessionPage: React.FC = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Toolbar */}
-                <div className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
+                <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4">
                     <div className="flex items-center gap-4">
                         <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                             Session
@@ -184,8 +184,8 @@ const SessionPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Editor Area */}
-                <div className="flex-1 p-4 pb-0 min-h-0">
+                {/* Editor Area - Full Width */}
+                <div className="flex-1 min-h-0">
                     <CodeEditor
                         code={code}
                         language={language === 'cpp' ? 'cpp' : language} // Monaco uses 'cpp' for C++
@@ -212,8 +212,8 @@ const SessionPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="w-64 bg-gray-800 border-l border-gray-700 flex flex-col">
+            {/* Sidebar - Narrower */}
+            <div className="w-56 bg-gray-800 border-l border-gray-700 flex flex-col">
                 <div className="p-4 border-b border-gray-700">
                     <h2 className="font-bold text-gray-300 mb-1">Participants</h2>
                     <div className="text-xs text-gray-500">{users.length} connected</div>
