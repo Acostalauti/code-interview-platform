@@ -105,69 +105,33 @@ const SessionPage: React.FC = () => {
         setIsRunning(true);
         setOutput([]); // Clear previous output
 
-        // Simple client-side execution for JS
-        if (language === 'javascript') {
-            try {
-                const logs: string[] = [];
-
-                // Mock console
-                console.log = (...args) => {
-                    logs.push(args.map(a => String(a)).join(' '));
-                };
-                console.error = (...args) => {
-                    logs.push('Error: ' + args.map(a => String(a)).join(' '));
-                };
-
-                // Execute
-                // Using Function constructor is safer than eval but still has risks.
-                // For a real interview platform, use a Web Worker or sandboxed iframe.
-                // We'll use a simple Function for v1 as requested "initially support at least JS".
-                // To make it slightly safer and async, we can wrap it.
-
-                // Actually, let's use a Blob URL Worker for better isolation as requested.
-                const workerCode = `
-          self.onmessage = function(e) {
-            const code = e.data;
-            let logs = [];
-            const originalLog = console.log;
-            console.log = function(...args) {
-              logs.push(args.join(' '));
-            };
-            try {
-              // Capture return value if any
-              const result = eval(code);
-              if (result !== undefined) {
-                logs.push('Result: ' + String(result));
-              }
-            } catch (err) {
-              logs.push('Error: ' + err.toString());
+        try {
+            // Show loading message for Python first-time execution
+            if (language === 'python') {
+                setOutput(['🔄 Initializing Python runtime...']);
             }
-            self.postMessage(logs);
-          };
-        `;
-                const blob = new Blob([workerCode], { type: 'application/javascript' });
-                const worker = new Worker(URL.createObjectURL(blob));
 
-                worker.onmessage = (e) => {
-                    setOutput(e.data);
-                    setIsRunning(false);
-                    worker.terminate();
-                };
+            const { executeCode } = await import('../utils/codeExecutor');
+            const result = await executeCode(code, language as 'javascript' | 'python');
 
-                worker.onerror = (err) => {
-                    setOutput(['Worker Error: ' + err.message]);
-                    setIsRunning(false);
-                    worker.terminate();
-                }
 
-                worker.postMessage(code);
+            const output = result.output || [];
 
-            } catch (err: any) {
-                setOutput(['Error: ' + err.message]);
-                setIsRunning(false);
+            if (result.error) {
+                output.push('');
+                output.push(`❌ ${result.error}`);
             }
-        } else {
-            setOutput(['Execution for ' + language + ' is not supported in the browser yet.']);
+
+            // Add execution time
+            if (result.executionTime !== undefined) {
+                output.push('');
+                output.push(`⏱️  Execution time: ${result.executionTime.toFixed(2)}ms`);
+            }
+
+            setOutput(output.length > 0 ? output : ['✅ Code executed successfully (no output)']);
+        } catch (err: any) {
+            setOutput([`💥 Fatal error: ${err.message}`]);
+        } finally {
             setIsRunning(false);
         }
     };
