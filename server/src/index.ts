@@ -104,8 +104,13 @@ io.on('connection', (socket: any) => {
     });
 });
 
+// Export for testing
+export { server, io, app };
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+
+if (require.main === module) {
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
