@@ -1,0 +1,48 @@
+# Ignore node_modules
+node_modules
+**/node_modules
+
+# Ignore build artifacts
+dist
+build
+coverage
+*.log
+
+# Ignore development files
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore documentation
+*.md
+!README.md
+
+# Ignore test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+__tests__
+
+# Ignore config files
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.json
+
+# Ignore other unnecessary files
+.github
+docs.html
