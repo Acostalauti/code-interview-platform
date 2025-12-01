@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: Code Interview Platform API
+  description: |
+    Real-time collaborative coding interview platform with safe in-browser JavaScript execution.
+    
+    This API provides endpoints for managing interview sessions and real-time collaboration
+    through Socket.IO for code synchronization, language changes, and participant management.
+  version: 1.0.0
+  contact:
+    name: Code Interview Platform Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server (to be configured)
+
+tags:
+  - name: Sessions
+    description: Interview session management
+
+paths:
+  /api/sessions:
+    post:
+      tags:
+        - Sessions
+      summary: Create a new interview session
+      description: |
+        Creates a new collaborative coding interview session with a unique ID.
+        The session is initialized with default code and JavaScript as the default language.
+      operationId: createSession
+      responses:
+        '200':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionCreatedResponse'
+              example:
+                sessionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/sessions/{id}:
+    get:
+      tags:
+        - Sessions
+      summary: Get session details
+      description: |
+        Retrieves the current state of a session including code, language, and connected users.
+        This endpoint is useful for checking session status before joining.
+      operationId: getSession
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique session identifier (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      responses:
+        '200':
+          description: Session found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+              example:
+                id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                code: "// Start coding..."
+                language: "javascript"
+                users:
+                  - id: "socket-id-123"
+                    name: "John Doe"
+                  - id: "socket-id-456"
+                    name: "Jane Smith"
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Session not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Session:
+      type: object
+      required:
+        - id
+        - code
+        - language
+        - users
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique session identifier
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        code:
+          type: string
+          description: Current code content in the session
+          example: "// Start coding..."
+        language:
+          type: string
+          description: Programming language for syntax highlighting
+          enum:
+            - javascript
+            - python
+            - java
+            - cpp
+          example: "javascript"
+        users:
+          type: array
+          description: List of users currently in the session
+          items:
+            $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique user identifier (socket ID)
+          example: "socket-id-123"
+        name:
+          type: string
+          description: User's display name
+          example: "John Doe"
+          minLength: 1
+          maxLength: 100
+
+    SessionCreatedResponse:
+      type: object
+      required:
+        - sessionId
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: Unique identifier for the newly created session
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+          example: "Session not found"

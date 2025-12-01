@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -41,13 +41,14 @@ app.get('/api/sessions/:id', (req, res) => {
 });
 
 // Socket.io Logic
-io.on('connection', (socket) => {
+io.on('connection', (socket: any) => {
     console.log('User connected:', socket.id);
 
-    socket.on('join-session', ({ sessionId, userName }) => {
+    socket.on('join-session', ({ sessionId, userName }: { sessionId: string; userName: string }) => {
         const session = getSession(sessionId);
         if (session) {
             socket.join(sessionId);
+            socket.sessionId = sessionId; // Track session for disconnect handling
             addUserToSession(sessionId, { id: socket.id, name: userName });
 
             // Send initial state to the user
@@ -61,38 +62,18 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('code-change', ({ sessionId, code }) => {
+    socket.on('code-change', ({ sessionId, code }: { sessionId: string; code: string }) => {
         updateSessionCode(sessionId, code);
         socket.to(sessionId).emit('code-update', code);
     });
 
-    socket.on('language-change', ({ sessionId, language }) => {
+    socket.on('language-change', ({ sessionId, language }: { sessionId: string; language: string }) => {
         updateSessionLanguage(sessionId, language);
         io.to(sessionId).emit('language-update', language);
     });
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        // We need to find which session the user was in.
-        // In a real app, we might map socket.id to sessionId.
-        // For now, we can iterate (inefficient but works for small scale) or store it on the socket object if we use a custom type.
-        // Let's just iterate our store for now.
-        // Actually, socket.rooms contains the rooms.
-        // But we need to update our store.
-        // Let's just do a quick search in our store.
-        // Since we don't have a reverse map, we'll just leave it for now or implement a better way if needed.
-        // A simple way is to store sessionId on the socket during join.
-    });
-});
-
-// Better disconnect handling
-io.on('connection', (socket: any) => {
-    socket.on('join-session', ({ sessionId, userName }: { sessionId: string, userName: string }) => {
-        socket.sessionId = sessionId;
-        // ... rest of logic
-    });
-
-    socket.on('disconnect', () => {
         if (socket.sessionId) {
             removeUserFromSession(socket.sessionId, socket.id);
             io.to(socket.sessionId).emit('user-left', socket.id);

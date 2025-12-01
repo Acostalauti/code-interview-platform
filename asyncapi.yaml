@@ -1,0 +1,277 @@
+asyncapi: 2.6.0
+info:
+  title: Code Interview Platform Socket.IO API
+  version: 1.0.0
+  description: |
+    Real-time WebSocket communication for collaborative coding sessions.
+    
+    This API uses Socket.IO for bidirectional event-based communication to enable
+    real-time code synchronization, language changes, and user presence updates.
+  contact:
+    name: Code Interview Platform Team
+  license:
+    name: MIT
+
+servers:
+  development:
+    url: ws://localhost:3000
+    protocol: socketio
+    description: Local development server
+  production:
+    url: wss://api.example.com
+    protocol: socketio
+    description: Production server (to be configured)
+
+channels:
+  # Client -> Server Events
+  join-session:
+    description: Client joins an interview session
+    subscribe:
+      summary: Join a coding session
+      message:
+        $ref: '#/components/messages/JoinSessionMessage'
+
+  code-change:
+    description: Client sends code changes
+    subscribe:
+      summary: Update code in the session
+      message:
+        $ref: '#/components/messages/CodeChangeMessage'
+
+  language-change:
+    description: Client changes programming language
+    subscribe:
+      summary: Change the code editor language
+      message:
+        $ref: '#/components/messages/LanguageChangeMessage'
+
+  # Server -> Client Events
+  init-session:
+    description: Server sends initial session state to newly joined user
+    publish:
+      summary: Receive initial session state
+      message:
+        $ref: '#/components/messages/InitSessionMessage'
+
+  code-update:
+    description: Server broadcasts code changes to other users
+    publish:
+      summary: Receive code updates from other users
+      message:
+        $ref: '#/components/messages/CodeUpdateMessage'
+
+  language-update:
+    description: Server broadcasts language changes
+    publish:
+      summary: Receive language updates
+      message:
+        $ref: '#/components/messages/LanguageUpdateMessage'
+
+  user-joined:
+    description: Server notifies when a user joins
+    publish:
+      summary: Notification when a user joins the session
+      message:
+        $ref: '#/components/messages/UserJoinedMessage'
+
+  user-left:
+    description: Server notifies when a user leaves
+    publish:
+      summary: Notification when a user leaves the session
+      message:
+        $ref: '#/components/messages/UserLeftMessage'
+
+  users-update:
+    description: Server sends updated list of connected users
+    publish:
+      summary: Receive updated user list
+      message:
+        $ref: '#/components/messages/UsersUpdateMessage'
+
+  error:
+    description: Server sends error messages
+    publish:
+      summary: Receive error notifications
+      message:
+        $ref: '#/components/messages/ErrorMessage'
+
+components:
+  messages:
+    # Client -> Server Messages
+    JoinSessionMessage:
+      name: join-session
+      title: Join Session Event
+      summary: Client requests to join a session
+      payload:
+        type: object
+        required:
+          - sessionId
+          - userName
+        properties:
+          sessionId:
+            type: string
+            format: uuid
+            description: The session to join
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          userName:
+            type: string
+            description: Display name for the user
+            example: "John Doe"
+            minLength: 1
+            maxLength: 100
+
+    CodeChangeMessage:
+      name: code-change
+      title: Code Change Event
+      summary: Client sends updated code
+      payload:
+        type: object
+        required:
+          - sessionId
+          - code
+        properties:
+          sessionId:
+            type: string
+            format: uuid
+            description: The session being updated
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          code:
+            type: string
+            description: Updated code content
+            example: "console.log('Hello World');"
+
+    LanguageChangeMessage:
+      name: language-change
+      title: Language Change Event
+      summary: Client changes the programming language
+      payload:
+        type: object
+        required:
+          - sessionId
+          - language
+        properties:
+          sessionId:
+            type: string
+            format: uuid
+            description: The session being updated
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          language:
+            type: string
+            description: New programming language
+            enum:
+              - javascript
+              - python
+              - java
+              - cpp
+            example: "javascript"
+
+    # Server -> Client Messages
+    InitSessionMessage:
+      name: init-session
+      title: Initialize Session Event
+      summary: Server sends initial session state
+      payload:
+        type: object
+        required:
+          - id
+          - code
+          - language
+          - users
+        properties:
+          id:
+            type: string
+            format: uuid
+            description: Session identifier
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          code:
+            type: string
+            description: Current code in the session
+            example: "// Start coding..."
+          language:
+            type: string
+            description: Current programming language
+            enum:
+              - javascript
+              - python
+              - java
+              - cpp
+            example: "javascript"
+          users:
+            type: array
+            description: List of connected users
+            items:
+              $ref: '#/components/schemas/User'
+
+    CodeUpdateMessage:
+      name: code-update
+      title: Code Update Event
+      summary: Server broadcasts code changes
+      payload:
+        type: string
+        description: Updated code content
+        example: "console.log('Hello World');"
+
+    LanguageUpdateMessage:
+      name: language-update
+      title: Language Update Event
+      summary: Server broadcasts language changes
+      payload:
+        type: string
+        description: New programming language
+        enum:
+          - javascript
+          - python
+          - java
+          - cpp
+        example: "python"
+
+    UserJoinedMessage:
+      name: user-joined
+      title: User Joined Event
+      summary: Server notifies of new user
+      payload:
+        $ref: '#/components/schemas/User'
+
+    UserLeftMessage:
+      name: user-left
+      title: User Left Event
+      summary: Server notifies of user departure
+      payload:
+        type: string
+        description: Socket ID of the user who left
+        example: "socket-id-123"
+
+    UsersUpdateMessage:
+      name: users-update
+      title: Users Update Event
+      summary: Server sends updated user list
+      payload:
+        type: array
+        description: Complete list of connected users
+        items:
+          $ref: '#/components/schemas/User'
+
+    ErrorMessage:
+      name: error
+      title: Error Event
+      summary: Server sends error message
+      payload:
+        type: string
+        description: Error message
+        example: "Session not found"
+
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique user identifier (socket ID)
+          example: "socket-id-123"
+        name:
+          type: string
+          description: User's display name
+          example: "John Doe"

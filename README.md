@@ -80,25 +80,64 @@ code-interview-platform/
    npm install
    ```
 
+**OR** install all dependencies at once from the root:
+```bash
+npm run install:all
+```
+
+### Quick Start
+
+Once dependencies are installed, run from the root directory:
+
+```bash
+npm run dev
+```
+
+This will start both the server and client. Open your browser to `http://localhost:5173` and start coding!
+
+
 ## Development
 
 ### Running the Application
 
-You need to run both the server and client in separate terminal windows.
+#### Option 1: Run Both Server and Client with One Command (Recommended)
 
-#### Terminal 1: Start the Server
+From the root directory:
+
 ```bash
-cd server
 npm run dev
 ```
-The server will run on `http://localhost:3000`
 
-#### Terminal 2: Start the Client
+This will start both the server and client concurrently. The server will run on `http://localhost:3000` and the client on `http://localhost:5173`.
+
+#### Option 2: Run Server and Client Separately
+
+If you prefer to run them in separate terminals:
+
+**Terminal 1: Start the Server**
 ```bash
-cd client
-npm run dev
+npm run dev:server
+# or: cd server && npm run dev
 ```
-The client will run on `http://localhost:5173`
+
+**Terminal 2: Start the Client**
+```bash
+npm run dev:client
+# or: cd client && npm run dev
+```
+
+### Other Useful Commands
+
+**Install all dependencies (root, server, and client):**
+```bash
+npm run install:all
+```
+
+**Run tests:**
+```bash
+npm test
+```
+
 
 ### Using the Application
 
@@ -147,9 +186,15 @@ npm run build
 npm run preview
 ```
 
-## API Endpoints
+## API Documentation
+
+This platform provides both REST and WebSocket APIs for session management and real-time collaboration.
 
 ### REST API
+
+Complete REST API documentation is available in [OpenAPI 3.0 format](openapi.yaml).
+
+#### Quick Reference
 
 - `POST /api/sessions` - Create a new session
   - Response: `{ sessionId: string }`
@@ -157,23 +202,39 @@ npm run preview
 - `GET /api/sessions/:id` - Get session details
   - Response: `{ id, code, language, users[] }`
 
-### WebSocket Events
+You can view and interact with the API documentation using tools like [Swagger Editor](https://editor.swagger.io/) or [Stoplight](https://stoplight.io/).
 
-**Client → Server:**
+### WebSocket Events (Socket.IO)
+
+Complete WebSocket API documentation is available in [AsyncAPI 2.6 format](asyncapi.yaml).
+
+#### Client → Server Events
+
 - `join-session` - Join a coding session
-  - Payload: `{ sessionId, userName }`
+  - Payload: `{ sessionId: string, userName: string }`
 - `code-change` - Broadcast code changes
-  - Payload: `{ sessionId, code }`
+  - Payload: `{ sessionId: string, code: string }`
 - `language-change` - Change programming language
-  - Payload: `{ sessionId, language }`
+  - Payload: `{ sessionId: string, language: string }`
 
-**Server → Client:**
-- `init-session` - Initial session state
+#### Server → Client Events
+
+- `init-session` - Initial session state after joining
+  - Payload: `Session` object
 - `code-update` - Code changed by another user
+  - Payload: `string` (new code)
 - `language-update` - Language changed by another user
-- `user-joined` - New user joined
+  - Payload: `string` (new language)
+- `user-joined` - New user joined the session
+  - Payload: `User` object
 - `user-left` - User disconnected
+  - Payload: `string` (user socket ID)
 - `users-update` - Updated participant list
+  - Payload: `User[]` array
+- `error` - Error notification
+  - Payload: `string` (error message)
+
+You can visualize the WebSocket API using [AsyncAPI Studio](https://studio.asyncapi.com/).
 
 ## Architecture
 

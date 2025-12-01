@@ -109,8 +109,6 @@ const SessionPage: React.FC = () => {
         if (language === 'javascript') {
             try {
                 const logs: string[] = [];
-                const originalLog = console.log;
-                const originalError = console.error;
 
                 // Mock console
                 console.log = (...args) => {
